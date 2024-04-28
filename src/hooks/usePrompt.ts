@@ -1,11 +1,11 @@
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { useCallback, useState } from "react";
-import { OpenAIChatCompletion } from "../types";
-import { isHtml, removeCodeFences, sanitiseHtml } from "../utils";
+import { OpenAIChatCompletion, PromptConfig } from "../types";
 
 type PromptParams = {
   apiKey: string;
   projectId?: string;
+  promptConfig: PromptConfig;
 };
 
 type PromptReturn = {
@@ -23,6 +23,7 @@ type PromptReturn = {
 export const usePrompt = ({
   apiKey,
   projectId,
+  promptConfig,
 }: PromptParams): PromptReturn => {
   const [prompt, setPrompt] = useLocalStorage("PromptSandbox_prompt", "");
   const [response, setResponse] = useState("");
@@ -41,7 +42,6 @@ export const usePrompt = ({
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
-            "OpenAI-Organization": "org-9meuEnhXv3XCeb9GbqmPBUGs",
             ...(projectId ? { "OpenAI-Project": projectId } : {}),
           },
           body: JSON.stringify({
@@ -49,8 +49,7 @@ export const usePrompt = ({
             messages: [
               {
                 role: "system",
-                content:
-                  "You are an expert in HTML and Tailwind CSS. You will respond to requests with pure HTML code, using Tailwind from a CDN for styling. Your responses should be pure HTML, not Markdown. If you can't answer the request with code, you may give the reason why with a concise sentence.",
+                content: promptConfig.systemPrompt,
               },
               {
                 role: "user",
@@ -62,15 +61,11 @@ export const usePrompt = ({
       );
 
       const data = (await response.json()) as OpenAIChatCompletion;
-      const responseStr = removeCodeFences(data.choices[0].message.content);
 
-      if (isHtml(responseStr)) {
-        setResponse(sanitiseHtml(responseStr));
-      } else {
-        throw new Error(
-          "The response did not contain pure HTML. Response: " + responseStr
-        );
-      }
+      const formattedResponse = promptConfig.formatResponse(
+        data.choices[0].message.content
+      );
+      setResponse(formattedResponse);
     } catch (error: unknown) {
       const err = error as Error;
 
@@ -78,7 +73,7 @@ export const usePrompt = ({
     } finally {
       setLoading(false);
     }
-  }, [apiKey, projectId, prompt]);
+  }, [apiKey, projectId, prompt, promptConfig]);
 
   return {
     setPrompt,

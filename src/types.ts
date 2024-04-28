@@ -23,3 +23,16 @@ export type OpenAIChatCompletion = {
     total_tokens: number;
   };
 };
+
+export type PromptConfig = {
+  systemPrompt: string;
+  formatResponse: (response: string) => string;
+};
+
+export type FeatureConfig = {
+  title: string;
+  emoji: string;
+  urlPath: string;
+  renderPreview: (response: string) => React.ReactNode;
+  promptConfig: PromptConfig;
+};

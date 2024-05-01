@@ -26,7 +26,7 @@ export type OpenAIChatCompletion = {
 
 export type PromptConfig = {
   systemPrompt: string;
-  formatResponse: (response: string) => string;
+  formatResponse: (response: string) => Promise<string>;
 };
 
 export type FeatureConfig = {

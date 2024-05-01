@@ -1,5 +1,6 @@
 import { FeatureConfig } from "./types";
-import { isHtml, removeCodeFences, sanitiseHtml } from "./utils";
+import { removeCodeFences } from "./utils/formatters";
+import { isHtml } from "./utils/validators";
 
 export const featureConfigs: FeatureConfig[] = [
   {
@@ -14,12 +15,14 @@ export const featureConfigs: FeatureConfig[] = [
     ),
     promptConfig: {
       systemPrompt:
-        "You are an expert in HTML and Tailwind CSS. You will respond to requests with pure HTML code, using Tailwind from a CDN for styling. Your responses should be pure HTML, not Markdown. If you can't answer the request with code, you may give the reason why with a concise sentence.",
-      formatResponse: (response) => {
+        "Respond to all requests with pure HTML code beautifully styled with Tailwind classes. Include a CDN link for Tailwind. Do not include any descriptive language or markdown code fences in your responses. If you can't answer the request with code, you may give the reason why with a concise sentence.",
+      formatResponse: async (response) => {
         const responseStr = removeCodeFences(response);
 
-        if (isHtml(responseStr)) {
-          return sanitiseHtml(responseStr);
+        const isValidHtml = await isHtml(responseStr);
+
+        if (isValidHtml) {
+          return responseStr;
         } else {
           throw new Error(
             "The response did not contain pure HTML. Response: " + responseStr

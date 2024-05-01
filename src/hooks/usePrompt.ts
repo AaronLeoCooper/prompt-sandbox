@@ -62,9 +62,10 @@ export const usePrompt = ({
 
       const data = (await response.json()) as OpenAIChatCompletion;
 
-      const formattedResponse = promptConfig.formatResponse(
+      const formattedResponse = await promptConfig.formatResponse(
         data.choices[0].message.content
       );
+
       setResponse(formattedResponse);
     } catch (error: unknown) {
       const err = error as Error;

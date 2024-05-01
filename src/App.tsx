@@ -26,6 +26,7 @@ function App({ featureConfig }: AppProps) {
         <div className="flex flex-row gap-2 items-center">
           {featureConfigs.map(({ title, urlPath, emoji }) => (
             <a
+              key={title}
               href={`/${urlPath}`}
               title={title}
               className="text-xl inline-block"
